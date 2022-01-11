@@ -25,7 +25,7 @@ st.set_page_config(page_title="Natural Language Processing Tool", page_icon="ðŸ¤
 st.title("Natural Language Processing Tool")
 
 with st.sidebar:
-    selected = option_menu("Method Menu", ['Home', 'Basic Text Analysis', 'Named Entity Recognition', 'Text Classification','Topic Modeling', 'Text Summarization'], icons=['house'], menu_icon="cast", default_index=0)
+    selected = option_menu("Method Menu", ['Home', 'Basic Text Analysis', 'Named Entity Recognition', 'Text Categorization','Topic Modeling', 'Text Summarization'], icons=['house'], menu_icon="cast", default_index=0)
 
 def plot_result(top_topics, scores):
     top_topics = np.array(top_topics)
@@ -200,9 +200,9 @@ if selected == 'Named Entity Recognition':
         else:
             st.write("Please enter text or upload file on the Home page.")
 
-if selected == 'Text Classification':
+if selected == 'Text Categorization':
     API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-    st.subheader("Text Classification")
+    st.subheader("Text Categorization")
     st.write("**Description:** This task involves placing a piece of text into one or more categories.")
     
     cat1 = st.text_input('Enter each possible category name (separated by a comma). Maximum 5 categories.')
@@ -229,7 +229,7 @@ if selected == 'Text Classification':
             df15 = pd.DataFrame({'Text': text_class1, 'Category': class_name, 'Probability': score_name})
             st.write(df15)
             Classification_Results = df15.to_csv(index=False, header=True)
-            st.download_button("Download Results", Classification_Results, file_name="Classification_Results.csv")
+            st.download_button("Download Results", Classification_Results, file_name="Categorization_Results.csv")
 
         else:
             st.write("Please enter text or upload file on the Home page.")
