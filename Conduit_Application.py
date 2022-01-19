@@ -87,7 +87,7 @@ if selected == 'Home':
                 st.write("Please upload a file.")
             else:
                 st.write('Text uploaded successfully! You are now ready to try out the analysis tasks.')
-                df = pd.read_csv(dfs)
+                df = pd.read_csv(dfs, encoding_errors = 'ignore')
                 first_column_all = df.iloc[1:, 0]
                 first_column_short = df.iloc[1:20, 0]  
                 texts_all = first_column_all.to_list()
