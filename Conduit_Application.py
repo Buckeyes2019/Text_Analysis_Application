@@ -214,7 +214,7 @@ if selected == 'Text Categorization':
             cat1name = text_class['labels'][0]
             cat1prob = text_class['scores'][0]
             st.write('**Text:** ', st.session_state.text)
-            st.write('**Category:** {} | **Probability:** {:.1f}%'.format(cat1name,(cat1prob*100)))
+            st.write('**Category:** {} | **Probability:** {:.1f}%'.format(cat1name.title(),(cat1prob*100)))
             plot_result(text_class['labels'][::-1][-10:], text_class['scores'][::-1][-10:])
 
         elif len(st.session_state.multitext_all) > 0:
@@ -226,7 +226,7 @@ if selected == 'Text Categorization':
                 text_class1.append(i)
                 class_name.append(text_class2['labels'][0])
                 score_name.append(text_class2['scores'][0])
-            df15 = pd.DataFrame({'Text': text_class1, 'Category': class_name, 'Probability': score_name})
+            df15 = pd.DataFrame({'Text': text_class1.title(), 'Category': class_name, 'Probability': score_name})
             st.write(df15)
             Classification_Results = df15.to_csv(index=False, header=True)
             st.download_button("Download Results", Classification_Results, file_name="Categorization_Results.csv")
