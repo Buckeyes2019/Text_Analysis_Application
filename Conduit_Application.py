@@ -274,7 +274,7 @@ if selected == 'Topic Modeling':
             id_to_term = {id_: term for term, id_ in vocab.items()}
             st.write('### The topics identified are:')
             for topic_idx, terms in model.top_topic_terms(id_to_term, top_n=words_in_topic):
-                st.write(f"**Topic {topic_idx+1}**: {'; '.join(terms)}")
+                st.write(f"**Topic {topic_idx}**: {'; '.join(terms)}")
             st.write('### Chart of Topics and Words')
             plot1 = model.termite_plot(doc_term_matrix, id_to_term, n_terms=12, highlight_topics=graph_topic_to_highlight,save = "termite_plot.png")
             st.image('./termite_plot.png')
