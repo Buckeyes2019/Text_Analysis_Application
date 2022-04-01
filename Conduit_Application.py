@@ -18,6 +18,12 @@ import numpy as np
 from collections import Counter
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
+from keybert import KeyBERT
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+import plotly.express as px
+from keyphrase_vectorizers import KeyphraseCountVectorizer
+from sentence_transformers import SentenceTransformer
 simplefilter(action='ignore', category=FutureWarning)
 
 st.set_page_config(page_title="Natural Language Processing Tool", page_icon="ðŸ¤–")
@@ -25,7 +31,7 @@ st.set_page_config(page_title="Natural Language Processing Tool", page_icon="ðŸ¤
 st.title("Natural Language Processing Tool")
 
 with st.sidebar:
-    selected = option_menu("Method Menu", ['Home', 'Basic Text Analysis', 'Named Entity Recognition', 'Text Categorization','Topic Modeling', 'Text Summarization'], icons=['house'], menu_icon="cast", default_index=0)
+    selected = option_menu("Method Menu", ['Home', 'Basic Text Analysis', 'Named Entity Recognition', 'Text Categorization', 'Text Summarization','Topic Modeling','Document Clustering'], icons=['house'], menu_icon="cast", default_index=0)
 
 def plot_result(top_topics, scores):
     top_topics = np.array(top_topics)
@@ -124,6 +130,7 @@ if selected == 'Basic Text Analysis':
                 st.write("Average Word Length: ", round(avg_word, 2))
                 st.write("Word Cloud: ")
                 st.image(word_cloud.to_image())
+            st.write("**Text:** ", st.session_state.text)
                 
         elif len(st.session_state.multitext_all) > 0:
             doc_count1 = len(st.session_state.multitext_all)
@@ -145,6 +152,9 @@ if selected == 'Basic Text Analysis':
                 st.write("Average Word Length: ", round(avg_word1, 2))
                 st.write("Word Cloud: ")
                 st.image(word_cloud1.to_image())
+            df = pd.DataFrame(st.session_state.multitext_all, columns=['Documents'])
+            st.write("**Uploaded Text Below:** ")
+            st.table(df)
 
         else:
             st.write("Please enter text or upload file on the Home page.")    
@@ -242,7 +252,7 @@ if selected == 'Topic Modeling':
     graph_topic_to_highlight = [0,2,4]
 
     num_topics = st.slider('Number of Topics to Find ', min_value=1, max_value=12, value=6, step=1)
-    words_in_topic = st.slider('Number of Words Per Topic to Display', min_value=1, max_value=10, value=5, step=1)
+    words_in_topic = 10
     n_grams = st.radio('N-Gram Size', ['Single Word', 'Two Word Phrases', 'Three Word Phrases'])
     model_type = st.radio('Select Topic Modeling Algorithm', ['Latent Dirichlet Allocation','Non-Negative Matrix Factorization', 'Latent Semantic Analysis'])
     if model_type == 'Non-Negative Matrix Factorization':
@@ -272,10 +282,10 @@ if selected == 'Topic Modeling':
             model.fit(doc_term_matrix)
             doc_topic_matrix = model.transform(doc_term_matrix)
             id_to_term = {id_: term for term, id_ in vocab.items()}
-            st.write('### The topics identified are:')
+            st.write('**Below are the top 10 word/phrases for each topic:**')
             for topic_idx, terms in model.top_topic_terms(id_to_term, top_n=words_in_topic):
                 st.write(f"**Topic {topic_idx}**: {'; '.join(terms)}")
-            st.write('### Chart of Topics and Words')
+            st.write('**Chart of Topics and Words**')
             plot1 = model.termite_plot(doc_term_matrix, id_to_term, n_terms=12, highlight_topics=graph_topic_to_highlight,save = "termite_plot.png")
             st.image('./termite_plot.png')
         else:
@@ -318,6 +328,78 @@ if selected == 'Text Summarization':
         else:
             st.write("Please enter text or upload file on the Home page.")
 
+if selected == 'Document Clustering':
+    
+    st.subheader("Document Clustering")
+    st.write("**Description:** This task involves places documents into groups based on similarity.")
+    st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
+    
+    num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
+    model = 'all-MiniLM-L6-v2'
+    kw_model = KeyBERT(model)
+    embedder = SentenceTransformer(model)
+    submit6 = st.button('Analyze Text')
+
+    if submit6:
+        if len(st.session_state.text) > 0:
+            st.write('I am sorry this method does not apply to single texts. Please return to the Home page and upload a CSV file of mutiple texts.')
+        elif len(st.session_state.multitext_all) > 0:
+            list_of_text = st.session_state.multitext_all
+            corpus_embeddings = embedder.encode(list_of_text)
+            clustering_model = KMeans(n_clusters=num_clusters)
+            clustering_model.fit(corpus_embeddings)
+            cluster_assignment = clustering_model.labels_
+            cluster_assignment += 1
+
+            df1 = pd.DataFrame(list(zip(list_of_text, cluster_assignment)), columns=['text','cluster'])
+
+            lister = []
+            for i in df1.cluster.unique():
+                lister.append(i)
+                lister.sort()
+
+            lister2 = []
+            for i in lister:
+                lister2.append(' '.join(df1[df1.cluster == i]['text'].tolist()))
+
+            clust = 1
+            new_list = []
+            for i in lister2:
+                keyphrase_data = kw_model.extract_keywords(docs=i, vectorizer=KeyphraseCountVectorizer(), top_n=8)
+                phrases =[]
+                for i in keyphrase_data:
+                    phrases.append(i[0])
+                new_list.append(phrases)
+                clust +=1
+
+            joined_list = []
+            for i in new_list:
+                joined_list.append(' ; '.join(i))
+            joined_list = [i.title() for i in joined_list]
+            df4 = pd.DataFrame(list(zip(lister, joined_list)), columns=['Cluster Number','Key Words/Phrases Within Each Cluster'], index=None)
+            df4.index = [""] * len(df4)
+            st.write('The table below displays the document clusters and key words/phrases extracted from each cluster.')
+            st.table(df4)
+            embeds = pd.DataFrame(corpus_embeddings)
+            pca = PCA(n_components=3)
+            pca_test = pca.fit_transform(embeds)
+
+            cluster_assignment = [str(x) for x in cluster_assignment]
+            new_list1 = []
+            pca_outputs = pd.DataFrame(pca_test)
+            pca_outputs.columns = ['PC1', 'PC2', 'PC3']
+            pca_outputs['cluster'] = cluster_assignment
+            pca_outputs['text'] = list_of_text
+            test = [new_list1.append(i[:60]+"...") for i in list_of_text]
+            pca_outputs['short_text'] = new_list1
+            pca_outputs.sort_values(by=['cluster'], ascending=True, inplace=True)
+
+            fig = px.scatter_3d(pca_outputs, x='PC1', y='PC2', z='PC3', color='cluster', hover_name='short_text')
+            st.write('Below is an interactive 3D scatter plot of the documents. Each point represents a document and the colors correspond to the clusters. You can explore the graphic closer by clicking the "view fullscreen" button in the top right corner.')
+            st.plotly_chart(fig)
+        else:
+            st.write("Please upload a CSV file on the Home page.")
+            
 hide_streamlit_style = """
             <style>
             footer {visibility: hidden;}
