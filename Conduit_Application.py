@@ -342,7 +342,7 @@ if selected == 'Document Clustering':
 
     if submit6:
 	st.spinner(text="This may take a moment..."):
-		time.sleep(5)
+	    time.sleep(5)
         if len(st.session_state.text) > 0:
             st.write('I am sorry this method does not apply to single texts. Please return to the Home page and upload a CSV file of mutiple texts.')
         elif len(st.session_state.multitext_all) > 0:
