@@ -331,16 +331,18 @@ if selected == 'Text Summarization':
 if selected == 'Document Clustering':
     
     st.subheader("Document Clustering")
-    st.write("**Description:** This task involves places documents into groups based on similarity.")
+    st.write("**Description:** This task involves placing documents into groups based on similarity and then extracting the key words/phrases from each group.")
     st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
     
     num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
     model = 'all-MiniLM-L6-v2'
+    submit6 = st.button('Analyze Text')
     kw_model = KeyBERT(model)
     embedder = SentenceTransformer(model)
-    submit6 = st.button('Analyze Text')
 
     if submit6:
+	st.spinner(text="This may take a moment..."):
+		time.sleep(5)
         if len(st.session_state.text) > 0:
             st.write('I am sorry this method does not apply to single texts. Please return to the Home page and upload a CSV file of mutiple texts.')
         elif len(st.session_state.multitext_all) > 0:
