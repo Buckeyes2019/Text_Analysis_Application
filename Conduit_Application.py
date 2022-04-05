@@ -48,9 +48,11 @@ def plot_result(top_topics, scores):
     fig.update_traces(texttemplate='%{text:0.1f}%', textposition='outside')
     st.plotly_chart(fig) 
 
+headers = {'Authorization': st.secrets['api_key']}
+
 def query(payload):
     data = json.dumps(payload)
-    response = requests.request("POST", API_URL, data=data)
+    response = requests.request("POST", API_URL, headers=headers, data=data)
     return json.loads(response.content.decode("utf-8"))
 
 if "text" not in st.session_state:
@@ -95,7 +97,7 @@ if selected == 'Home':
                 st.write('Text uploaded successfully! You are now ready to try out the analysis tasks.')
                 df = pd.read_csv(dfs, encoding_errors = 'ignore')
                 first_column_all = df.iloc[1:, 0]
-                first_column_short = df.iloc[1:20, 0]  
+                first_column_short = df.iloc[1:10, 0]  
                 texts_all = first_column_all.to_list()
                 texts_short = first_column_short.to_list()
                 test_all = [str(x) for x in texts_all]
@@ -232,7 +234,7 @@ if selected == 'Text Categorization':
             class_name = []
             score_name = []
             for i in st.session_state.multitext_all:
-                text_class2 = query({"inputs": i, "parameters": {"candidate_labels": labels1}})
+                text_class2 = query({"inputs": i, "parameters": {"candidate_labels": labels1, "wait_for_model": True}})
                 text_class1.append(i)
                 class_name.append(text_class2['labels'][0])
                 score_name.append(text_class2['scores'][0])
@@ -312,13 +314,13 @@ if selected == 'Text Summarization':
                 sum_text = ' '.join(st.session_state.multitext_all)
                 sum_text2 = sum_text[0:1023]
                 data = query({"inputs": sum_text2,
-                "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
+                "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy, "wait_for_model": True}})
                 st.write("**Summary:**  ", data[0]['summary_text'])
             if sum_choice == 'Each document summarized individually.':
                 sum_list = []
                 for i in st.session_state.multitext_all:
                     data = query({"inputs": i,
-                    "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
+                    "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy, "wait_for_model": True}})
                     sum_list.append(data[0]['summary_text'])
                 sum_all = list(zip(st.session_state.multitext_all, sum_list))
                 sum_df = pd.DataFrame(sum_all, columns=['Text', 'Summary'])
@@ -333,25 +335,26 @@ if selected == 'Document Clustering':
     st.subheader("Document Clustering")
     st.write("**Description:** This task involves placing documents into groups based on similarity and then extracting the key words/phrases from each group.")
     st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
+    API_URL = "https://api-inference.huggingface.co/models/Craig/paraphrase-MiniLM-L6-v2"
     
     num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
-    model = 'all-MiniLM-L6-v2'
     submit6 = st.button('Analyze Text')
-    kw_model = KeyBERT(model)
-    embedder = SentenceTransformer(model)
 
     if submit6:
         if len(st.session_state.text) > 0:
             st.write('I am sorry this method does not apply to single texts. Please return to the Home page and upload a CSV file of mutiple texts.')
         elif len(st.session_state.multitext_all) > 0:
             list_of_text = st.session_state.multitext_all
-            corpus_embeddings = embedder.encode(list_of_text)
+            corpus_embeddings = query({"inputs": list_of_text, "parameters": {"wait_for_model": True}})
+            
             clustering_model = KMeans(n_clusters=num_clusters)
             clustering_model.fit(corpus_embeddings)
             cluster_assignment = clustering_model.labels_
             cluster_assignment += 1
 
             df1 = pd.DataFrame(list(zip(list_of_text, cluster_assignment)), columns=['text','cluster'])
+            model = 'all-MiniLM-L6-v2'
+            kw_model = KeyBERT(model)
 
             lister = []
             for i in df1.cluster.unique():
@@ -397,6 +400,10 @@ if selected == 'Document Clustering':
             fig = px.scatter_3d(pca_outputs, x='PC1', y='PC2', z='PC3', color='cluster', hover_name='short_text')
             st.write('Below is an interactive 3D scatter plot of the documents. Each point represents a document and the colors correspond to the clusters. You can explore the graphic closer by clicking the "view fullscreen" button in the top right corner.')
             st.plotly_chart(fig)
+            cluster_df = pca_outputs[['cluster', 'text']]
+            Cluster_Results = cluster_df.to_csv(index=False, header=True)
+            st.download_button("Download Results", Cluster_Results, file_name="Document_Clustering_Results.csv")
+            
         else:
             st.write("Please upload a CSV file on the Home page.")
             
