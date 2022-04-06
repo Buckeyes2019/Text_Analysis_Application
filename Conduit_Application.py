@@ -1,6 +1,6 @@
-#%%
-
 #### Natural Language Processing Application (Streamlit) ####
+
+## Importing the libraries
 
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -26,6 +26,8 @@ from keyphrase_vectorizers import KeyphraseCountVectorizer
 from sentence_transformers import SentenceTransformer
 simplefilter(action='ignore', category=FutureWarning)
 
+## Configuring the main page, defining functions that will be used across multiple tasks, and setting the Session State objects (this is data that is kept in memory while the user navigates around through the various tasks).
+
 st.set_page_config(page_title="Natural Language Processing Tool", page_icon="🤖")
 
 st.title("Natural Language Processing Tool")
@@ -48,6 +50,8 @@ def plot_result(top_topics, scores):
     fig.update_traces(texttemplate='%{text:0.1f}%', textposition='outside')
     st.plotly_chart(fig) 
 
+#### While some tasks (Basic Text Analysis, Named Entity Recognition, and Topic Modeling) are run locally, the others (Text Categorization, Text Summarization, and Document Clustering) require making API calls to models in the Hugging Face model hub. The following 7 lines of code are used to set up the API calls to the model hub.
+
 headers = {'Authorization': st.secrets['api_key']}
 
 def query(payload):
@@ -63,6 +67,8 @@ if "multitext_all" not in st.session_state:
 
 if "multitext_short" not in st.session_state:
     st.session_state.multitext_short = ''
+
+## The sidebar navigation pane you see on the app is accessed through "if statements". Below you will see each task tab corresponds to an "if statement", and that some of the tasks have sub-"if statements" nested within them.
 
 if selected == 'Home':
     
@@ -97,7 +103,7 @@ if selected == 'Home':
                 st.write('Text uploaded successfully! You are now ready to try out the analysis tasks.')
                 df = pd.read_csv(dfs, encoding_errors = 'ignore')
                 first_column_all = df.iloc[1:, 0]
-                first_column_short = df.iloc[1:10, 0]  
+                first_column_short = df.iloc[1:11, 0]  
                 texts_all = first_column_all.to_list()
                 texts_short = first_column_short.to_list()
                 test_all = [str(x) for x in texts_all]
@@ -105,6 +111,8 @@ if selected == 'Home':
                 st.session_state.multitext_all = test_all
                 st.session_state.multitext_short = test_short
                 st.session_state.text = ''
+
+#### The next line loads a Spacy model and can be slow. I placed it here so the home page loads first and, while the user is reading the text, the model is loads in the background.
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -230,15 +238,18 @@ if selected == 'Text Categorization':
             plot_result(text_class['labels'][::-1][-10:], text_class['scores'][::-1][-10:])
 
         elif len(st.session_state.multitext_all) > 0:
+            st.write("_Note: During the current testing phase, this task can only be performed on the first 10 documents._")
             text_class1 = []
             class_name = []
             score_name = []
-            for i in st.session_state.multitext_all:
+            my_bar = st.progress(0)
+            for i in st.session_state.multitext_short:
                 text_class2 = query({"inputs": i, "parameters": {"candidate_labels": labels1, "wait_for_model": True}})
                 text_class1.append(i)
                 class_name.append(text_class2['labels'][0])
                 score_name.append(text_class2['scores'][0])
-            df15 = pd.DataFrame({'Text': text_class1.title(), 'Category': class_name, 'Probability': score_name})
+                my_bar.progress(len(class_name)*10)
+            df15 = pd.DataFrame({'Text': text_class1, 'Category': class_name, 'Probability': score_name})
             st.write(df15)
             Classification_Results = df15.to_csv(index=False, header=True)
             st.download_button("Download Results", Classification_Results, file_name="Categorization_Results.csv")
@@ -286,7 +297,7 @@ if selected == 'Topic Modeling':
             id_to_term = {id_: term for term, id_ in vocab.items()}
             st.write('**Below are the top 10 word/phrases for each topic:**')
             for topic_idx, terms in model.top_topic_terms(id_to_term, top_n=words_in_topic):
-                st.write(f"**Topic {topic_idx}**: {'; '.join(terms)}")
+                st.write(f"**Topic {topic_idx+1}**: {'; '.join(terms)}")
             st.write('**Chart of Topics and Words**')
             plot1 = model.termite_plot(doc_term_matrix, id_to_term, n_terms=12, highlight_topics=graph_topic_to_highlight,save = "termite_plot.png")
             st.image('./termite_plot.png')
@@ -309,20 +320,22 @@ if selected == 'Text Summarization':
             st.write("**Summary:**  ", data[0]['summary_text'])
 
         elif len(st.session_state.multitext_all) > 0:
-            
+            st.write("_Note: During the current testing phase, this task can only be performed on the first 10 documents._")
             if sum_choice == 'All documents to one summary.':
-                sum_text = ' '.join(st.session_state.multitext_all)
+                sum_text = ' '.join(st.session_state.multitext_short)
                 sum_text2 = sum_text[0:1023]
                 data = query({"inputs": sum_text2,
-                "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy, "wait_for_model": True}})
+                "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
                 st.write("**Summary:**  ", data[0]['summary_text'])
             if sum_choice == 'Each document summarized individually.':
                 sum_list = []
-                for i in st.session_state.multitext_all:
+                my_bar1 = st.progress(0)
+                for i in st.session_state.multitext_short:
                     data = query({"inputs": i,
-                    "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy, "wait_for_model": True}})
+                    "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
                     sum_list.append(data[0]['summary_text'])
-                sum_all = list(zip(st.session_state.multitext_all, sum_list))
+                    my_bar1.progress(len(sum_list)*10)
+                sum_all = list(zip(st.session_state.multitext_short, sum_list))
                 sum_df = pd.DataFrame(sum_all, columns=['Text', 'Summary'])
                 st.write(sum_df)
                 Summary_Results = sum_df.to_csv(index=False, header=True)
@@ -333,20 +346,11 @@ if selected == 'Text Summarization':
 if selected == 'Document Clustering':
     
     st.subheader("Document Clustering")
-    st.write("**Description:** This task involves places documents into groups based on similarity.")
-    st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
-    
-    num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
-    model = 'all-MiniLM-L6-v2'
-    kw_model = KeyBERT(model)
-    embedder = SentenceTransformer(model)
-    
     st.write("**Description:** This task involves placing documents into groups based on similarity and then extracting the key words/phrases from each group.")
     st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
     API_URL = "https://api-inference.huggingface.co/models/Craig/paraphrase-MiniLM-L6-v2"
     
     num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
-    
     submit6 = st.button('Analyze Text')
 
     if submit6:
@@ -354,7 +358,6 @@ if selected == 'Document Clustering':
             st.write('I am sorry this method does not apply to single texts. Please return to the Home page and upload a CSV file of mutiple texts.')
         elif len(st.session_state.multitext_all) > 0:
             list_of_text = st.session_state.multitext_all
-            corpus_embeddings = embedder.encode(list_of_text)
             corpus_embeddings = query({"inputs": list_of_text, "parameters": {"wait_for_model": True}})
             
             clustering_model = KMeans(n_clusters=num_clusters)
@@ -366,6 +369,8 @@ if selected == 'Document Clustering':
             model = 'all-MiniLM-L6-v2'
             kw_model = KeyBERT(model)
 
+            kp_vect = KeyphraseCountVectorizer(lowercase=False)
+
             lister = []
             for i in df1.cluster.unique():
                 lister.append(i)
@@ -374,21 +379,21 @@ if selected == 'Document Clustering':
             lister2 = []
             for i in lister:
                 lister2.append(' '.join(df1[df1.cluster == i]['text'].tolist()))
-
             clust = 1
             new_list = []
+            my_bar2 = st.progress(0)
             for i in lister2:
-                keyphrase_data = kw_model.extract_keywords(docs=i, vectorizer=KeyphraseCountVectorizer(), top_n=8)
+                keyphrase_data = kw_model.extract_keywords(docs=i, vectorizer=kp_vect, top_n=8)
                 phrases =[]
                 for i in keyphrase_data:
                     phrases.append(i[0])
                 new_list.append(phrases)
+                my_bar2.progress(round(clust/len(lister2), 1))
                 clust +=1
 
             joined_list = []
             for i in new_list:
                 joined_list.append(' ; '.join(i))
-            joined_list = [i.title() for i in joined_list]
             df4 = pd.DataFrame(list(zip(lister, joined_list)), columns=['Cluster Number','Key Words/Phrases Within Each Cluster'], index=None)
             df4.index = [""] * len(df4)
             st.write('The table below displays the document clusters and key words/phrases extracted from each cluster.')
@@ -413,10 +418,12 @@ if selected == 'Document Clustering':
             cluster_df = pca_outputs[['cluster', 'text']]
             Cluster_Results = cluster_df.to_csv(index=False, header=True)
             st.download_button("Download Results", Cluster_Results, file_name="Document_Clustering_Results.csv")
-            
+
         else:
             st.write("Please upload a CSV file on the Home page.")
-            
+
+#### This last portion is something of a placeholder -- the code allows putting a small amount of text at the bottom of the page and could be usefil later on if this application is deployed more widely.
+
 hide_streamlit_style = """
             <style>
             footer {visibility: hidden;}
