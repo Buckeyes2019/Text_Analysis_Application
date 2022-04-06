@@ -2,28 +2,29 @@
 
 ## Importing the libraries
 
-import streamlit as st
-from streamlit_option_menu import option_menu
-import pandas as pd
-import textacy
-import textacy.tm
-import spacy
-from spacy import displacy
+import json
+from collections import Counter
 from functools import partial
 from warnings import simplefilter
-import json
-import requests
-import plotly.express as px
-import numpy as np
-from collections import Counter
+
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-from keybert import KeyBERT
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
+import numpy as np
+import pandas as pd
 import plotly.express as px
+import requests
+import spacy
+import streamlit as st
+import textacy
+import textacy.tm
+from keybert import KeyBERT
 from keyphrase_vectorizers import KeyphraseCountVectorizer
 from sentence_transformers import SentenceTransformer
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from spacy import displacy
+from streamlit_option_menu import option_menu
+from wordcloud import WordCloud
+
 simplefilter(action='ignore', category=FutureWarning)
 
 ## Configuring the main page, defining functions that will be used across multiple tasks, and setting the Session State objects (this is data that is kept in memory while the user navigates around through the various tasks).
