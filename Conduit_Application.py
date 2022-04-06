@@ -333,11 +333,20 @@ if selected == 'Text Summarization':
 if selected == 'Document Clustering':
     
     st.subheader("Document Clustering")
+    st.write("**Description:** This task involves places documents into groups based on similarity.")
+    st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
+    
+    num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
+    model = 'all-MiniLM-L6-v2'
+    kw_model = KeyBERT(model)
+    embedder = SentenceTransformer(model)
+    
     st.write("**Description:** This task involves placing documents into groups based on similarity and then extracting the key words/phrases from each group.")
     st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
     API_URL = "https://api-inference.huggingface.co/models/Craig/paraphrase-MiniLM-L6-v2"
     
     num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
+    
     submit6 = st.button('Analyze Text')
 
     if submit6:
@@ -345,6 +354,7 @@ if selected == 'Document Clustering':
             st.write('I am sorry this method does not apply to single texts. Please return to the Home page and upload a CSV file of mutiple texts.')
         elif len(st.session_state.multitext_all) > 0:
             list_of_text = st.session_state.multitext_all
+            corpus_embeddings = embedder.encode(list_of_text)
             corpus_embeddings = query({"inputs": list_of_text, "parameters": {"wait_for_model": True}})
             
             clustering_model = KMeans(n_clusters=num_clusters)
