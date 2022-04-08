@@ -141,7 +141,7 @@ if selected == 'Basic Text Analysis':
                 st.write("Average Word Length: ", round(avg_word, 2))
                 st.write("Word Cloud: ")
                 st.image(word_cloud.to_image())
-            st.write("**Text:** ", st.session_state.text)
+            st.write("**Uploaded Text:** ", st.session_state.text)
                 
         elif len(st.session_state.multitext_all) > 0:
             doc_count1 = len(st.session_state.multitext_all)
