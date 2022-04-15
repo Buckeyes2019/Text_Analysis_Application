@@ -73,7 +73,7 @@ if "multitext_short" not in st.session_state:
 
 if selected == 'Home':
     
-    st.write("_**Introduction:** This web application allows you to use machine learning to analyze text. On the left-hand side of the screen you can see five analysis tasks that can be applied to your text._")
+    st.write("_**Introduction:** This web application allows you to use machine learning to analyze text. On the left-hand side of the screen you can see six analysis tasks that can be applied to your text._")
 
     st.write("**Instructions:** The first step is to choose how you would like to input your text. You can either type it into the text box (single document), or upload a spreadsheet with multiple rows of text (multiple documents). Once you have saved and submitted the text, you can proceed to the analysis tasks.")  
     
