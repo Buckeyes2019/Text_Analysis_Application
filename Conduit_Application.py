@@ -384,7 +384,7 @@ if selected == 'Document Clustering':
             new_list = []
             my_bar2 = st.progress(0)
             for i in lister2:
-                keyphrase_data = kw_model.extract_keywords(docs=i, vectorizer=kp_vect, top_n=5)
+                keyphrase_data = kw_model.extract_keywords(docs=i, vectorizer=kp_vect, top_n=6)
                 phrases =[]
                 for i in keyphrase_data:
                     phrases.append(i[0])
