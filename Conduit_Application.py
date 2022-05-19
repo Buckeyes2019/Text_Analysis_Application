@@ -408,14 +408,14 @@ if selected == 'Document Clustering':
             cluster_assignment = [str(x) for x in cluster_assignment]
             new_list1 = []
             pca_outputs = pd.DataFrame(pca_test)
-            pca_outputs.columns = ['PC1', 'PC2', 'PC3']
+            pca_outputs.columns = ['First Component', 'Second Component', 'Third Component']
             pca_outputs['cluster'] = cluster_assignment
             pca_outputs['text'] = list_of_text
             test = [new_list1.append(i[:60]+"...") for i in list_of_text]
             pca_outputs['short_text'] = new_list1
             pca_outputs.sort_values(by=['cluster'], ascending=True, inplace=True)
 
-            fig = px.scatter_3d(pca_outputs, x='PC1', y='PC2', z='PC3', color='cluster', hover_name='short_text')
+            fig = px.scatter_3d(pca_outputs, x='First Component', y='Second Component', z='Third Component', color='cluster', hover_name='short_text')
             st.write('Below is an interactive 3D scatter plot of the documents. Each point represents a document and the colors correspond to the clusters. You can explore the graphic closer by clicking the "view fullscreen" button in the top right corner.')
             st.plotly_chart(fig)
             cluster_df = pca_outputs[['cluster', 'text']]
