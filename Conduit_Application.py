@@ -324,6 +324,7 @@ if selected == 'Text Summarization':
             data = query({"inputs": st.session_state.text,
             "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
             st.write("**Summary:**  ", data[0]['summary_text'])
+            st.write("**Original Text:**  ", st.session_state.text)
 
         elif len(st.session_state.multitext_all) > 0:
             st.write("_Note: During the current testing phase, this task can only be performed on the first 10 documents._")
