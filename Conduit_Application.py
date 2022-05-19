@@ -193,7 +193,7 @@ if selected == 'Named Entity Recognition':
                 df14 = df14.groupby(["Type of Entity", "Entity"]).size().reset_index(name="Count").sort_values(by=["Type of Entity", "Count"], ascending=False, inplace=True)
 		
                 st.write(df14)
-                NER_Results1 = df14.to_csv(index=False, header=True)
+                NER_Results1 = df14.to_csv(header=True)
                 st.download_button("Download Results", NER_Results1, file_name="NER_Results.csv")
                 options = {"ents": ["ORG", "GPE","PERSON", "LOC"]}
                 HTML_WRAPPER = """<div style="overflow-x: auto; border: 1px solid #e6e9ef; border-radius: 0.25rem; padding: 1rem; margin-bottom: 2.5rem">{}</div>"""
