@@ -190,10 +190,10 @@ if selected == 'Named Entity Recognition':
                 df14 = df14[df14['Type of Entity'].isin(options1)]
                 df14['Type of Entity'] = df14['Type of Entity'].str.replace('PERSON', 'Person').str.replace('ORG', 'Organization').str.replace('LOC', 'Location').str.replace('GPE', 'Geopolitical Entity')
                 df14.sort_values(['Type of Entity'], ascending=False, inplace=True)
-                df14 = df14.groupby(["Type of Entity", "Entity"]).size().reset_index(name="Count").sort_values(by=["Type of Entity", "Count"], ascending=False)
+                df14 = df14.groupby(["Type of Entity", "Entity"]).size().reset_index(name="Count").sort_values(by=["Count","Type of Entity"], ascending=False)
 		
                 st.write(df14)
-                NER_Results1 = df14.to_csv(header=True)
+                NER_Results1 = df14.to_csv(index=False, header=True)
                 st.download_button("Download Results", NER_Results1, file_name="NER_Results.csv")
                 options = {"ents": ["ORG", "GPE","PERSON", "LOC"]}
                 HTML_WRAPPER = """<div style="overflow-x: auto; border: 1px solid #e6e9ef; border-radius: 0.25rem; padding: 1rem; margin-bottom: 2.5rem">{}</div>"""
@@ -216,6 +216,9 @@ if selected == 'Named Entity Recognition':
             options1 = ["ORG", "GPE", "PERSON", "LOC"]
             df3 = df3[df3['Type of Entity'].isin(options1)]
             df3['Type of Entity'] = df3['Type of Entity'].str.replace('PERSON', 'Person').str.replace('ORG', 'Organization').str.replace('LOC', 'Location').str.replace('GPE', 'Geopolitical Entity')
+            df3.sort_values(['Type of Entity'], ascending=False, inplace=True)
+            df3 = df3.groupby(["Type of Entity", "Entity"]).size().reset_index(name="Count").sort_values(by=["Count","Type of Entity"], ascending=False)
+            
             st.write(df3)
             NER_Results = df3.to_csv(index=False, header=True)
             st.download_button("Download Results", NER_Results, file_name="NER_Results.csv")
