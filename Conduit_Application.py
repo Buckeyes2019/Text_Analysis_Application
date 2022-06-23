@@ -5,6 +5,7 @@
 import json
 from collections import Counter
 from functools import partial
+from random import random
 from warnings import simplefilter
 
 import matplotlib.pyplot as plt
@@ -24,10 +25,16 @@ from sklearn.decomposition import PCA
 from spacy import displacy
 from streamlit_option_menu import option_menu
 from wordcloud import WordCloud
+from umap import UMAP
+from sklearn.pipeline import make_pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from cluestar import plot_text
 
 simplefilter(action='ignore', category=FutureWarning)
 
-## Configuring the main page, defining functions that will be used across multiple tasks, and setting the Session State objects (this is data that is kept in memory while the user navigates around through the various tasks).
+# Configuring the main page, defining functions that will be used across multiple tasks,//
+# and setting the Session State objects (this is data that is kept in memory while the //
+# user navigates around through the various tasks).
 
 st.set_page_config(page_title="Natural Language Processing Tool", page_icon="🤖")
 
@@ -51,7 +58,10 @@ def plot_result(top_topics, scores):
     fig.update_traces(texttemplate='%{text:0.1f}%', textposition='outside')
     st.plotly_chart(fig) 
 
-#### While some tasks (Basic Text Analysis, Named Entity Recognition, and Topic Modeling) are run locally, the others (Text Categorization, Text Summarization, and Document Clustering) require making API calls to models in the Hugging Face model hub. The following 7 lines of code are used to set up the API calls to the model hub.
+#### While some tasks (Basic Text Analysis, Named Entity Recognition, and Topic Modeling) //
+# are run locally, the others (Text Categorization, Text Summarization, and Document Clustering) //
+# require making API calls to models in the Hugging Face model hub. The following 7 lines of code //
+# are used to set up the API calls to the model hub.
 
 headers = {'Authorization': st.secrets['api_key']}
 
@@ -69,7 +79,9 @@ if "multitext_all" not in st.session_state:
 if "multitext_short" not in st.session_state:
     st.session_state.multitext_short = ''
 
-## The sidebar navigation pane you see on the app is accessed through "if statements". Below you will see each task tab corresponds to an "if statement", and that some of the tasks have sub-"if statements" nested within them.
+## The sidebar navigation pane you see on the app is accessed through "if statements". //
+# Below you will see each task tab corresponds to an "if statement", and that some of the //
+# tasks have sub-"if statements" nested within them.
 
 if selected == 'Home':
     
@@ -113,7 +125,8 @@ if selected == 'Home':
                 st.session_state.multitext_short = test_short
                 st.session_state.text = ''
 
-#### The next line loads a Spacy model and can be slow. I placed it here so the home page loads first and, while the user is reading the text, the model is loads in the background.
+#### The next line loads a Spacy model and can be slow. I placed it here so the home page //
+# loads first and, while the user is reading the text, the model is loads in the background.
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -128,19 +141,23 @@ if selected == 'Basic Text Analysis':
             doc_count = 1
             col1, col2 = st.columns(2)
             word_freq = Counter(word_list)
-            word_freq_df = pd.DataFrame(word_freq.most_common(), columns=['Word', 'Frequency'])
+            word_freq_df = pd.DataFrame(word_freq.most_common(), columns=['Word', 'Count'])
             word_cloud = WordCloud(background_color='white', max_words=100, max_font_size=50, random_state=42).generate(' '.join(word_list))
             with col1:
                 st.write("Document Count: ", doc_count)
                 st.write("Unique Word Count: ", len(set(word_list)))
-                st.write("Word Frequency Table: ")
-                st.write(word_freq_df)
+
             with col2:
                 st.write("Word Count: ", len(word_list))
                 avg_word = np.mean([len(word) for word in word_list])
                 st.write("Average Word Length: ", round(avg_word, 2))
-                st.write("Word Cloud: ")
-                st.image(word_cloud.to_image())
+
+            st.write('--------------------------------------------')
+
+            st.write("Word Cloud: ")
+            st.image(word_cloud.to_image())
+
+            st.write('--------------------------------------------')            
             st.write("**Uploaded Text:** ", st.session_state.text)
                 
         elif len(st.session_state.multitext_all) > 0:
@@ -150,19 +167,30 @@ if selected == 'Basic Text Analysis':
                 word_list1.extend(i.split())
             col1, col2 = st.columns(2)
             word_freq1 = Counter(word_list1)
-            word_freq_df1 = pd.DataFrame(word_freq1.most_common(), columns=['Word', 'Frequency'])
+            word_freq_df1 = pd.DataFrame(word_freq1.most_common(), columns=['Word', 'Count'])
             word_cloud1 = WordCloud(background_color='white', max_words=100, max_font_size=50, random_state=42).generate(' '.join(word_list1))
             with col1:
                 st.write("Document Count: ", doc_count1)
                 st.write("Unique Word Count: ", len(set(word_list1)))
-                st.write("Word Frequency Table: ")
-                st.write(word_freq_df1)
             with col2:
                 st.write("Word Count: ", len(word_list1))
                 avg_word1 = np.mean([len(word) for word in word_list1])
                 st.write("Average Word Length: ", round(avg_word1, 2))
-                st.write("Word Cloud: ")
-                st.image(word_cloud1.to_image())
+            
+            st.write('--------------------------------------------')
+
+            pipe = make_pipeline(TfidfVectorizer(), UMAP(random_state=42))
+            X = pipe.fit_transform(st.session_state.multitext_all)
+            temp_chart = plot_text(X, st.session_state.multitext_all)
+            st.altair_chart(temp_chart, use_container_width=True)
+
+            st.write('--------------------------------------------')
+
+            st.write("Word Cloud: ")
+            st.image(word_cloud1.to_image())
+
+            st.write('--------------------------------------------')
+
             df = pd.DataFrame(st.session_state.multitext_all, columns=['Documents'])
             st.write("**Uploaded Text Below:** ")
             st.table(df)
@@ -199,6 +227,7 @@ if selected == 'Named Entity Recognition':
                 HTML_WRAPPER = """<div style="overflow-x: auto; border: 1px solid #e6e9ef; border-radius: 0.25rem; padding: 1rem; margin-bottom: 2.5rem">{}</div>"""
                 html = displacy.render(doc_NER, style="ent", options=options)
                 html = html.replace("\n", " ")
+                st.write('--------------------------------------------')
                 st.write(HTML_WRAPPER.format(html), unsafe_allow_html=True)
             else:
                 st.write("No named entities found in the text.")
@@ -239,11 +268,13 @@ if selected == 'Text Categorization':
             text_class = query({"inputs": st.session_state.text, "parameters": {"candidate_labels": labels1}})
             cat1name = text_class['labels'][0]
             cat1prob = text_class['scores'][0]
+            st.write('--------------------------------------------')
             st.write('**Text:** ', st.session_state.text)
             st.write('**Category:** {} | **Probability:** {:.1f}%'.format(cat1name.title(),(cat1prob*100)))
             plot_result(text_class['labels'][::-1][-10:], text_class['scores'][::-1][-10:])
 
         elif len(st.session_state.multitext_all) > 0:
+            st.write('--------------------------------------------')
             st.write("_Note: During the current testing phase, this task can only be performed on the first 10 documents._")
             text_class1 = []
             class_name = []
@@ -262,7 +293,50 @@ if selected == 'Text Categorization':
 
         else:
             st.write("Please enter text or upload file on the Home page.")
-        
+
+if selected == 'Text Summarization':
+    
+    st.subheader("Text Summarization")
+    st.write("**Description:** This task involves condensing larger bodies of text into smaller bodies of text.")
+    API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+    max_lengthy = st.slider('Maximum summary length (words)', min_value=30, max_value=120, value=50, step=5)
+    min_lengthy = st.slider('Minimum summary length (words)', min_value=10, max_value=60, value=30, step=5)
+    sum_choice = st.radio('If analyzing multiple texts (i.e. a CSV file), please choose how you would like to summarize your data.', ['All documents to one summary.', 'Each document summarized individually.'])
+    submit5 = st.button('Analyze Text')  
+    if submit5:
+        if len(st.session_state.text) > 0:
+            data = query({"inputs": st.session_state.text,
+            "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
+            st.write('--------------------------------------------')
+            st.write("**Summary:**  ", data[0]['summary_text'])
+            st.write("**Original Text:**  ", st.session_state.text)
+
+        elif len(st.session_state.multitext_all) > 0:
+            st.write("_Note: During the current testing phase, this task can only be performed on the first 10 documents._")
+            if sum_choice == 'All documents to one summary.':
+                sum_text = ' '.join(st.session_state.multitext_short)
+                sum_text2 = sum_text[0:1023]
+                data = query({"inputs": sum_text2,
+                "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
+                st.write('--------------------------------------------')
+                st.write("**Summary:**  ", data[0]['summary_text'])
+            if sum_choice == 'Each document summarized individually.':
+                sum_list = []
+                my_bar1 = st.progress(0)
+                for i in st.session_state.multitext_short:
+                    data = query({"inputs": i,
+                    "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
+                    sum_list.append(data[0]['summary_text'])
+                    my_bar1.progress(len(sum_list)*10)
+                sum_all = list(zip(st.session_state.multitext_short, sum_list))
+                sum_df = pd.DataFrame(sum_all, columns=['Text', 'Summary'])
+                st.write('--------------------------------------------')
+                st.write(sum_df)
+                Summary_Results = sum_df.to_csv(index=False, header=True)
+                st.download_button("Download Results", Summary_Results, file_name="Summary_Results.csv")
+        else:
+            st.write("Please enter text or upload file on the Home page.")
+
 if selected == 'Topic Modeling':
     
     st.subheader("Topic Modeling")
@@ -301,55 +375,17 @@ if selected == 'Topic Modeling':
             model.fit(doc_term_matrix)
             doc_topic_matrix = model.transform(doc_term_matrix)
             id_to_term = {id_: term for term, id_ in vocab.items()}
+            st.write('--------------------------------------------')
             st.write('**Below are the top 10 word/phrases for each topic:**')
             for topic_idx, terms in model.top_topic_terms(id_to_term, top_n=words_in_topic):
-                st.write(f"**Topic {topic_idx+1}**: {'; '.join(terms)}")
+                st.write(f"**Topic {topic_idx}**: {'; '.join(terms)}")
+            st.write('--------------------------------------------')
             st.write('**Chart of Topics and Words**')
             plot1 = model.termite_plot(doc_term_matrix, id_to_term, n_terms=12, highlight_topics=graph_topic_to_highlight,save = "termite_plot.png")
             st.image('./termite_plot.png')
         else:
             st.write("Please upload a CSV file on the Home page.")
     
-if selected == 'Text Summarization':
-    
-    st.subheader("Text Summarization")
-    st.write("**Description:** This task involves condensing larger bodies of text into smaller bodies of text.")
-    API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
-    max_lengthy = st.slider('Maximum summary length (words)', min_value=30, max_value=120, value=50, step=5)
-    min_lengthy = st.slider('Minimum summary length (words)', min_value=10, max_value=60, value=30, step=5)
-    sum_choice = st.radio('If analyzing multiple texts (i.e. a CSV file), please choose how you would like to summarize your data.', ['All documents to one summary.', 'Each document summarized individually.'])
-    submit5 = st.button('Analyze Text')  
-    if submit5:
-        if len(st.session_state.text) > 0:
-            data = query({"inputs": st.session_state.text,
-            "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
-            st.write("**Summary:**  ", data[0]['summary_text'])
-            st.write("**Original Text:**  ", st.session_state.text)
-
-        elif len(st.session_state.multitext_all) > 0:
-            st.write("_Note: During the current testing phase, this task can only be performed on the first 10 documents._")
-            if sum_choice == 'All documents to one summary.':
-                sum_text = ' '.join(st.session_state.multitext_short)
-                sum_text2 = sum_text[0:1023]
-                data = query({"inputs": sum_text2,
-                "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
-                st.write("**Summary:**  ", data[0]['summary_text'])
-            if sum_choice == 'Each document summarized individually.':
-                sum_list = []
-                my_bar1 = st.progress(0)
-                for i in st.session_state.multitext_short:
-                    data = query({"inputs": i,
-                    "parameters": {"do_sample": False, "max_length": max_lengthy, "min_length": min_lengthy}})
-                    sum_list.append(data[0]['summary_text'])
-                    my_bar1.progress(len(sum_list)*10)
-                sum_all = list(zip(st.session_state.multitext_short, sum_list))
-                sum_df = pd.DataFrame(sum_all, columns=['Text', 'Summary'])
-                st.write(sum_df)
-                Summary_Results = sum_df.to_csv(index=False, header=True)
-                st.download_button("Download Results", Summary_Results, file_name="Summary_Results.csv")
-        else:
-            st.write("Please enter text or upload file on the Home page.")
-
 if selected == 'Document Clustering':
     
     st.subheader("Document Clustering")
@@ -367,7 +403,7 @@ if selected == 'Document Clustering':
             list_of_text = st.session_state.multitext_all
             corpus_embeddings = query({"inputs": list_of_text, "parameters": {"wait_for_model": True}})
             
-            clustering_model = KMeans(n_clusters=num_clusters)
+            clustering_model = KMeans(n_clusters=num_clusters, random_state=15)
             clustering_model.fit(corpus_embeddings)
             cluster_assignment = clustering_model.labels_
             cluster_assignment += 1
@@ -419,6 +455,17 @@ if selected == 'Document Clustering':
             pca_outputs['short_text'] = new_list1
             pca_outputs.sort_values(by=['cluster'], ascending=True, inplace=True)
 
+            st.write('--------------------------------------------')
+
+            st.write('Below is an interactive 2D scatter plot of the documents. Each point represents a document and the colors correspond to the clusters. Click and drag over several points to see the text displayed on the right.')
+
+            pipe = make_pipeline(TfidfVectorizer(), UMAP(random_state=42))
+            X = pipe.fit_transform(st.session_state.multitext_all)
+            temp_chart = plot_text(X, st.session_state.multitext_all, color_array=pca_outputs.cluster)
+            st.altair_chart(temp_chart, use_container_width=True)
+
+            st.write('--------------------------------------------')
+
             fig = px.scatter_3d(pca_outputs, x='First Component', y='Second Component', z='Third Component', color='cluster', hover_name='short_text')
             st.write('Below is an interactive 3D scatter plot of the documents. Each point represents a document and the colors correspond to the clusters. You can explore the graphic closer by clicking the "view fullscreen" button in the top right corner.')
             st.plotly_chart(fig)
@@ -429,7 +476,9 @@ if selected == 'Document Clustering':
         else:
             st.write("Please upload a CSV file on the Home page.")
 
-#### This last portion is something of a placeholder -- the code allows putting a small amount of text at the bottom of the page and could be usefil later on if this application is deployed more widely.
+#### This last portion is something of a placeholder -- the code allows putting //
+# a small amount of text at the bottom of the page and could be usefil later on //
+# if this application is deployed more widely.
 
 hide_streamlit_style = """
             <style>
