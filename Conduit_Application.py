@@ -125,11 +125,6 @@ if selected == 'Home':
                 st.session_state.multitext_short = test_short
                 st.session_state.text = ''
 
-#### The next line loads a Spacy model and can be slow. I placed it here so the home page //
-# loads first and, while the user is reading the text, the model is loads in the background.
-
-nlp = spacy.load('en_core_web_sm')
-
 if selected == 'Basic Text Analysis':
     
     st.subheader("Basic Text Analysis")
@@ -203,6 +198,7 @@ if selected == 'Named Entity Recognition':
     st.subheader("Named Entity Recognition")
     st.write("**Description:** This task involves identifying geopolitical entities, organizations, people, and locations in a body of text.")
     submit4 = st.button('Analyze Text')
+    nlp = spacy.load('en_core_web_sm')
 
     if submit4:
         if len(st.session_state.text) > 0:
