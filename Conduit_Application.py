@@ -194,7 +194,6 @@ if selected == 'Basic Text Analysis':
             st.write("Please enter text or upload file on the Home page.")    
 
 if selected == 'Named Entity Recognition':
-    API_URL = "https://api-inference.huggingface.co/models/dbmdz/bert-large-cased-finetuned-conll03-english"
     st.subheader("Named Entity Recognition")
     st.write("**Description:** This task involves identifying geopolitical entities, organizations, people, and locations in a body of text.")
     submit4 = st.button('Analyze Text')
