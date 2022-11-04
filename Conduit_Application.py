@@ -386,7 +386,7 @@ if selected == 'Document Clustering':
     st.subheader("Document Clustering")
     st.write("**Description:** This task involves placing documents into groups based on similarity and then extracting the key words/phrases from each group.")
     st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
-    API_URL = "https://api-inference.huggingface.co/models/Craig/paraphrase-MiniLM-L6-v2"
+    API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/paraphrase-MiniLM-L6-v2"
     ensure_model_is_ready = query({"inputs": ['test 1','test 2'], "parameters": {"wait_for_model": True}})
     
     num_clusters = st.slider('Number of Clusters to Create ', min_value=2, max_value=10, value=4, step=1)
