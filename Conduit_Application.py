@@ -397,7 +397,7 @@ if selected == 'Document Clustering':
             st.write('I am sorry this method does not apply to single texts. Please return to the Home page and upload a CSV file of mutiple texts.')
         elif len(st.session_state.multitext_all) > 0:
             list_of_text = st.session_state.multitext_all
-            corpus_embeddings = query({"inputs": list_of_text, "parameters": {"wait_for_model": True}})
+            corpus_embeddings = query({"inputs": list_of_text, "wait_for_model": True})
             
             clustering_model = KMeans(n_clusters=num_clusters, random_state=15)
             clustering_model.fit(corpus_embeddings)
