@@ -31,6 +31,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from cluestar import plot_text
 
 simplefilter(action='ignore', category=FutureWarning)
+pd.set_option('display.max_columns', None)
 
 # Configuring the main page, defining functions that will be used across multiple tasks,//
 # and setting the Session State objects (this is data that is kept in memory while the //
