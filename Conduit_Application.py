@@ -174,15 +174,15 @@ if selected == 'Basic Text Analysis':
             
             st.write('--------------------------------------------')
 
+            st.write("Word Cloud: ")
+            st.image(word_cloud1.to_image())		
+
+            st.write('--------------------------------------------')
+
             pipe = make_pipeline(TfidfVectorizer(), UMAP(random_state=42))
             X = pipe.fit_transform(st.session_state.multitext_all)
             temp_chart = plot_text(X, st.session_state.multitext_all)
             st.altair_chart(temp_chart, use_container_width=True)
-
-            st.write('--------------------------------------------')
-
-            st.write("Word Cloud: ")
-            st.image(word_cloud1.to_image())
 
             st.write('--------------------------------------------')
 
