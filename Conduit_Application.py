@@ -31,7 +31,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from cluestar import plot_text
 
 simplefilter(action='ignore', category=FutureWarning)
-pd.set_option('display.max_columns', None)
 
 # Configuring the main page, defining functions that will be used across multiple tasks,//
 # and setting the Session State objects (this is data that is kept in memory while the //
@@ -216,7 +215,7 @@ if selected == 'Named Entity Recognition':
                 df14.sort_values(['Type of Entity'], ascending=False, inplace=True)
                 df14 = df14.groupby(["Type of Entity", "Entity"]).size().reset_index(name="Count").sort_values(by=["Count","Type of Entity"], ascending=False)
 		
-                st.dataframe(df14)
+                st.write(df14)
                 NER_Results1 = df14.to_csv(index=False, header=True)
                 st.download_button("Download Results", NER_Results1, file_name="NER_Results.csv")
                 options = {"ents": ["ORG", "GPE","PERSON", "LOC"]}
@@ -244,7 +243,7 @@ if selected == 'Named Entity Recognition':
             df3.sort_values(['Type of Entity'], ascending=False, inplace=True)
             df3 = df3.groupby(["Type of Entity", "Entity"]).size().reset_index(name="Count").sort_values(by=["Count","Type of Entity"], ascending=False)
             
-            st.dataframe(df3)
+            st.write(df3)
             NER_Results = df3.to_csv(index=False, header=True)
             st.download_button("Download Results", NER_Results, file_name="NER_Results.csv")
             
