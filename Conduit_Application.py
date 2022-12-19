@@ -59,7 +59,7 @@ def plot_result(top_topics, scores):
     st.plotly_chart(fig) 
 
 #### While some tasks (Basic Text Analysis, Named Entity Recognition, and Topic Modeling) //
-# are run locally, the others (Text Categorization, Text Summarization, and Document Clustering) //
+# are run locally, the others (Text Classification, Text Summarization, and Document Clustering) //
 # require making API calls to models in the Hugging Face model hub. The following 7 lines of code //
 # are used to set up the API calls to the model hub.
 
@@ -250,9 +250,9 @@ if selected == 'Named Entity Recognition':
         else:
             st.write("Please enter text or upload file on the Home page.")
 
-if selected == 'Text Categorization':
+if selected == 'Text Classification':
     API_URL = "https://api-inference.huggingface.co/models/facebook/bart-large-mnli"
-    st.subheader("Text Categorization")
+    st.subheader("Text Classification")
     st.write("**Description:** This task involves placing a piece of text into one or more categories.")
     
     cat1 = st.text_input('Enter each possible category name (separated by a comma). Maximum 5 categories.')
