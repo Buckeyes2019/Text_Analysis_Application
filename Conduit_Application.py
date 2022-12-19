@@ -177,12 +177,12 @@ if selected == 'Basic Text Analysis':
             st.write("Word Cloud: ")
             st.image(word_cloud1.to_image())		
 
-            st.write('--------------------------------------------')
+            #st.write('--------------------------------------------')
 
-            pipe = make_pipeline(TfidfVectorizer(), UMAP(random_state=42))
-            X = pipe.fit_transform(st.session_state.multitext_all)
-            temp_chart = plot_text(X, st.session_state.multitext_all)
-            st.altair_chart(temp_chart, use_container_width=True)
+            #pipe = make_pipeline(TfidfVectorizer(), UMAP(random_state=42))
+            #X = pipe.fit_transform(st.session_state.multitext_all)
+            #temp_chart = plot_text(X, st.session_state.multitext_all)
+            #st.altair_chart(temp_chart, use_container_width=True)
 
             st.write('--------------------------------------------')
 
@@ -339,7 +339,7 @@ if selected == 'Topic Modeling':
     st.write("_Note: This task only applies to multiple document files (i.e. an uploaded CSV file)._")
     graph_topic_to_highlight = [0,2,4]
 
-    num_topics = st.slider('Number of Topics to Find ', min_value=1, max_value=12, value=6, step=1)
+    num_topics = st.slider('Number of Topics to Find ', min_value=2, max_value=12, value=6, step=1)
     words_in_topic = 10
     n_grams = st.radio('N-Gram Size', ['Single Word', 'Two Word Phrases', 'Three Word Phrases'])
     model_type = st.radio('Select Topic Modeling Algorithm', ['Latent Dirichlet Allocation','Non-Negative Matrix Factorization', 'Latent Semantic Analysis'])
