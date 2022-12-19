@@ -41,7 +41,7 @@ st.set_page_config(page_title="Natural Language Processing Tool", page_icon="ðŸ¤
 st.title("Natural Language Processing Tool")
 
 with st.sidebar:
-    selected = option_menu("Method Menu", ['Home', 'Basic Text Analysis', 'Named Entity Recognition', 'Text Categorization', 'Text Summarization','Topic Modeling','Document Clustering'], icons=['house'], menu_icon="cast", default_index=0)
+    selected = option_menu("Method Menu", ['Home', 'Basic Text Analysis', 'Named Entity Recognition', 'Text Classification', 'Text Summarization','Topic Modeling','Document Clustering'], icons=['house'], menu_icon="cast", default_index=0)
 
 def plot_result(top_topics, scores):
     top_topics = np.array(top_topics)
