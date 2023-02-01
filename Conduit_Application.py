@@ -29,9 +29,11 @@ from cluestar import plot_text
 
 simplefilter(action="ignore", category=FutureWarning)
 
-# Configuring the main page, defining functions that will be used across multiple tasks,//
-# and setting the Session State objects (this is data that is kept in memory while the //
-# user navigates around through the various tasks).
+'''
+
+Configuring the main page, defining functions that will be used across multiple tasks, and setting the Session State objects (this is data that is kept in memory while the user navigates around through the various tasks).
+
+'''
 
 st.set_page_config(page_title="Natural Language Processing Tool", page_icon="🤖")
 
